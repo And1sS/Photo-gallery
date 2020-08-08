@@ -16,7 +16,6 @@ class MainActivity : AppCompatActivity() {
                     R.id.fragment_container,
                     PhotoGalleryFragment.newInstance()
                 )
-                .addToBackStack(null)
                 .commit()
         }
     }

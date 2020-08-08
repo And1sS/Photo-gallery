@@ -1,4 +1,4 @@
-package com.and1ss.android.photogallery
+package com.and1ss.android.photogallery.view
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
