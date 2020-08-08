@@ -11,5 +11,8 @@ data class GalleryItem @JsonCreator constructor(
     var id: String = "",
     @SerializedName("url_s")
     @JsonProperty("url_s")
-    var url: String = ""
+    var smallUrl: String = "",
+    @SerializedName("url_o")
+    @JsonProperty("url_o")
+    var originalUrl: String = ""
 )

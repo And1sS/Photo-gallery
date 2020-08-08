@@ -1,5 +1,6 @@
 package com.and1ss.android.photogallery.api
 
+import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -12,7 +13,7 @@ class PhotoInterceptor : Interceptor {
             .addQueryParameter("api_key", API_KEY)
             .addQueryParameter("format", "json")
             .addQueryParameter("nojsoncallback", "1")
-            .addQueryParameter("extras", "url_s")
+            .addQueryParameter("extras", "url_s, url_o")
             .addQueryParameter("safesearch", "1")
             .build()
 

@@ -1,23 +1,22 @@
 package com.and1ss.android.photogallery.view
 
 import android.content.Context
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
+import androidx.fragment.app.FragmentManager
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.and1ss.android.photogallery.R
 import com.and1ss.android.photogallery.model.GalleryItem
 import com.bumptech.glide.Glide
-import java.lang.Exception
 
 class GalleryItemAdapter(
-    val context: Context
+    val context: Context,
+    val fragmentManager: FragmentManager
 ) : PagedListAdapter<
         GalleryItem,
         GalleryItemAdapter.GalleryItemViewHolder
@@ -25,13 +24,31 @@ class GalleryItemAdapter(
 
     val requestManager = Glide.with(context)
 
-    inner class GalleryItemViewHolder(itemView: ImageView) : RecyclerView.ViewHolder(itemView) {
-        fun bind(url: String) {
+    inner class GalleryItemViewHolder(
+        var item: GalleryItem? = null,
+        itemView: ImageView
+    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+        fun bind(item: GalleryItem) {
+            this.item = item
             requestManager
-                .load(url)
+                .load(item.smallUrl)
                 .placeholder(R.drawable.seekbar)
                 .centerCrop()
                 .into(itemView as ImageView)
+        }
+
+        override fun onClick(v: View?) {
+            val url = if (item?.originalUrl?.isNotEmpty() == true) {
+                item?.originalUrl!!
+            } else if (item?.smallUrl?.isNotEmpty() == true) {
+                item?.smallUrl!!
+            } else ""
+
+            Log.d("Test", "onClick: ${item?.originalUrl}, ${item?.smallUrl}")
+            ImageDialog
+                .newInstance(
+                    url, item?.title ?: ""
+                ).show(fragmentManager, ImageDialog.TAG)
         }
     }
 
@@ -45,14 +62,16 @@ class GalleryItemAdapter(
                 false
             ) as ImageView
 
-        return GalleryItemViewHolder(view)
+        return GalleryItemViewHolder(itemView = view).also {
+            view.setOnClickListener(it)
+        }
     }
 
     override fun onBindViewHolder(holder: GalleryItemViewHolder, position: Int) {
         val item = getItem(position)
 
         if (item != null) {
-            holder.bind(item.url)
+            holder.bind(item)
         }
     }
 

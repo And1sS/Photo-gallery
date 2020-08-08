@@ -3,4 +3,5 @@
     <string name="search">Search..</string>
     <string name="clear_search">Clear search</string>
     <string name="error_message">Oooops.. Something went wrong</string>
+    <string name="cancel">Cancel</string>
 </resources>

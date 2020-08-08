@@ -51,7 +51,7 @@ class PhotoGalleryFragment : Fragment() {
             }
         }
 
-        galleryItemAdapter = GalleryItemAdapter(context!!).apply {
+        galleryItemAdapter = GalleryItemAdapter(context!!, parentFragmentManager).apply {
             registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                     if (positionStart == 0) {
@@ -100,6 +100,7 @@ class PhotoGalleryFragment : Fragment() {
                     is BaseDataSource.LoadStatus.Error -> {
                         swipeRefreshLayout.isRefreshing = false
                         errorView.visibility = View.VISIBLE
+                        Log.d(TAG, "FETCHING: ${loadStatus.msg}")
                     }
                 }
             })

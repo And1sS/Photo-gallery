@@ -1,17 +1,16 @@
 package com.and1ss.android.photogallery.api
 
+import android.util.Log
 import com.and1ss.android.photogallery.model.GalleryItem
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
 import hu.akarnokd.rxjava3.retrofit.RxJava3CallAdapterFactory
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.annotations.NonNull
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
+
 
 private const val BASE_URL = "https://api.flickr.com/"
 private const val TAG = "FlickrFetchr"
@@ -33,7 +32,7 @@ class FlickrFetchr {
             }
             .map {
                 it.filter { galleryItem ->
-                    galleryItem.url?.isNotEmpty() ?: false
+                    galleryItem.smallUrl.isNotEmpty() || galleryItem.originalUrl.isNotEmpty()
                 }
             }
             .subscribeOn(Schedulers.io())
@@ -50,12 +49,13 @@ class FlickrFetchr {
 
     private fun fetchPhotosMetadata(call: Observable<ResponseBody>): Observable<FlickrResponse> {
         return call.map {
-                ObjectMapper()
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    .readValue(
-                    it.string(),
-                    FlickrResponse::class.java
-                ) as FlickrResponse
+            Gson().fromJson(it.string(), FlickrResponse::class.java)
+//                ObjectMapper()
+//                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//                    .readValue(
+//                    it.string(),
+//                    FlickrResponse::class.java
+//                ) as FlickrResponse
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())

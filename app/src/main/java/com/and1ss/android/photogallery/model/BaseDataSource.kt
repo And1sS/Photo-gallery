@@ -1,16 +1,14 @@
 package com.and1ss.android.photogallery.model
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PageKeyedDataSource
-import com.and1ss.android.photogallery.api.FlickrFetchr
 import com.and1ss.android.photogallery.api.FlickrResponse
 import io.reactivex.rxjava3.core.Observable
 
 private const val NO_PAGES = -1
 
-abstract class BaseDataSource : PageKeyedDataSource<Int, GalleryItem>()  {
+abstract class BaseDataSource : PageKeyedDataSource<Int, GalleryItem>() {
     private val _loadStatus: MutableLiveData<LoadStatus> = MutableLiveData()
     val loadStatus: LiveData<LoadStatus>
         get() = _loadStatus
@@ -24,13 +22,10 @@ abstract class BaseDataSource : PageKeyedDataSource<Int, GalleryItem>()  {
         _loadStatus.postValue(LoadStatus.Loading)
         fetchData(INITIAL_PAGE, PER_PAGE)
             .subscribe({ flickrResponse ->
-                val data = flickrResponse.photoResponse?.galleryItems?.filter {
-                    it.url.isNotEmpty()
-                } ?: emptyList()
-                callback.onResult(data, INITIAL_PAGE, INITIAL_PAGE + 1)
+                callback.onResult(prepareData(flickrResponse), INITIAL_PAGE, INITIAL_PAGE + 1)
                 _loadStatus.postValue(LoadStatus.Loaded)
             }, {
-                _loadStatus.postValue(LoadStatus.Error(it.message?: ""))
+                _loadStatus.postValue(LoadStatus.Error(it.message ?: ""))
             })
     }
 
@@ -41,38 +36,39 @@ abstract class BaseDataSource : PageKeyedDataSource<Int, GalleryItem>()  {
         _loadStatus.postValue(LoadStatus.Loading)
         fetchData(params.key, PER_PAGE)
             .subscribe({ flickrResponse ->
-                val data = flickrResponse.photoResponse?.galleryItems?.filter {
-                    it.url.isNotEmpty()
-                } ?: emptyList()
-
                 val adjasentKey =
                     if (flickrResponse.photoResponse?.pages ?: NO_PAGES > params.key) {
                         params.key + 1
                     } else {
                         null
                     }
-                callback.onResult(data, adjasentKey)
+                callback.onResult(prepareData(flickrResponse), adjasentKey)
                 _loadStatus.postValue(LoadStatus.Loaded)
             }, {
-                _loadStatus.postValue(LoadStatus.Error(it.message?: ""))
+                _loadStatus.postValue(LoadStatus.Error(it.message ?: ""))
             })
     }
 
     override fun loadBefore(params: LoadParams<Int>, callback: LoadCallback<Int, GalleryItem>) {
         _loadStatus.postValue(LoadStatus.Loading)
-        val adjasentKey = if (params.key > 1) params.key - 1 else null
-
         fetchData(params.key, PER_PAGE)
             .subscribe({ flickrResponse ->
-                val data = flickrResponse.photoResponse?.galleryItems?.filter {
-                    it.url.isNotEmpty()
-                } ?: emptyList()
-                callback.onResult(data, adjasentKey)
+                callback.onResult(
+                    prepareData(flickrResponse),
+                    if (params.key > 1) params.key - 1 else null
+                )
                 _loadStatus.postValue(LoadStatus.Loaded)
             }, {
-                _loadStatus.postValue(LoadStatus.Error(it.message?: ""))
+                _loadStatus.postValue(LoadStatus.Error(it.message ?: ""))
             })
     }
+
+    private fun prepareData(flickrResponse: FlickrResponse) =
+        flickrResponse.photoResponse?.galleryItems?.filter(::filter)
+            ?: mutableListOf()
+
+    private fun filter(galleryItem: GalleryItem) =
+        galleryItem.smallUrl.isNotEmpty() && galleryItem.originalUrl.isNotEmpty()
 
     sealed class LoadStatus {
         object Loading : LoadStatus()
